@@ -8,7 +8,7 @@ import os
 import re
 from pathlib import Path
 
-from .paths import ROOT, SETTINGS_FILE, USER_BOOK
+from .paths import SETTINGS_FILE, USER_BOOK
 from .text import short_home
 
 ENV_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -28,16 +28,19 @@ class Setting:
         self.hint = hint        # 書き方（書く画面の説明欄に出す）
 
 
+TEMPLATE_URL = "https://github.com/Ch4n24n/Hacking-Op-public.git"   # 雛形の既定（公開のリポジトリ）
+
 SETTINGS = [
     Setting("theme", "配色", "choice", "ocean", "画面の色と雰囲気。選ぶとすぐ変わる"),
     Setting("cases_dir", "案件の置き場所", "dir", "~/cases",
             "案件のフォルダを並べるフォルダ。案件のタブには、この中の（作業フォルダのある）フォルダが出る", "あるフォルダ（~ も使える）"),
-    # 既定は、ツールに付いている雛形（番号で持ち主を分けた箱）。場所の3つの既定も、その箱の形（2026-11-02、本人「今は Private の
-    # リポジトリを参照してクローンしているけど、Public 版では変えないとね」。公開版を入れた人が、何も設定せずに箱で始められるように。
-    # 本人の環境は settings.json に雛形と場所が書いてあるので変わらない）
-    Setting("template", "新しい案件の雛形", "text", short_home(ROOT / "template"),
+    # 既定は、雛形のリポジトリ Hacking-Op-public（番号で持ち主を分けた問題のフォルダ）を HTTPS で clone する。場所の3つの既定も、その
+    # 雛形の形（2026-11-02、本人「今は Private のリポジトリを参照してクローンしているけど、Public 版では変えないとね」「template の
+    # 考え方と hackdeck を混ぜたのが良くなかった。リポジトリを分けたほうがいい」。SSH は鍵のある本人しか使えないので HTTPS。本人の環境は
+    # settings.json に雛形（非公開の Hacking-Op を SSH で）と場所が書いてあるので変わらない）
+    Setting("template", "新しい案件の雛形", "text", TEMPLATE_URL,
             "新しい案件を作るときの元。git のリポジトリなら clone し、手元のフォルダなら写す。空なら作業フォルダとログの置き場所だけを作る。"
-            "既定は、ツールに付いている雛形（番号で持ち主を分けた箱。ツールの template フォルダ）",
+            "既定は、雛形のリポジトリ Hacking-Op-public（番号で持ち主を分けたフォルダ）",
             "git の URL（git@… https://…）か、手元のフォルダ"),
     Setting("work_dir", "作業フォルダ", "text", "02-作業",
             "案件のフォルダの中で作業する場所（シェルでは ~hack・$HACK_HOME）。新しいペインはここから始まる",

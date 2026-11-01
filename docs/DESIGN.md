@@ -55,7 +55,7 @@
 | `~/.local/state/hackdeck/` | `last`（直前の案件）・`autosave`（並びを自動で残した時刻） | `paths.STATE_DIR` |
 | `~/.cache/hackdeck/` | `tmux.conf`・`zsh/.zshenv`・`nav/`（閉じたときの画面の列）・`copy-state`・`magic.json`（ファイルの候補の `file -b`。場所・大きさ・更新時刻ごと）・`run/<窓の番号>/`（窓ごとの作業の置き場所。上の枠の中身・変数の候補・流れの図の対応表・カーソルの動き・fzf と vim の一時ファイル。`ui.work_dir`。閉じたら消し、止められて残ったものは次に窓を開いたときに消す。/tmp には書かない） | `paths.CACHE_DIR` |
 | 案件のフォルダ（`<cases_dir>/<名前>`） | 作業フォルダ（`work_dir`）・データの置き場所（`state_dir`）・ログ（`log_file`）。どれも案件のフォルダからの場所 | `case.py`（設定から） |
-| 付属の雛形（`paths.ROOT / "template"`） | 箱の見本（頭の番号で持ち主を分けたノート・`CLAUDE.md`）。設定の「新しい案件の雛形」の既定で、場所の3つの既定（`02-作業`・`02-作業/.hack`・`91-ログ/実行ログ.log`）もこの箱の形 | `template/` |
+| 雛形の既定（`settings.TEMPLATE_URL`） | 雛形のリポジトリ `https://github.com/Ch4n24n/Hacking-Op-public.git`（番号で持ち主を分けた問題のフォルダ・`CLAUDE.md`）。問題を作るとき clone する。場所の3つの既定（`02-作業`・`02-作業/.hack`・`91-ログ/実行ログ.log`）もこの雛形の形 | 別のリポジトリ（2026-11-02 に分けた） |
 | データの置き場所（`case.case_file(root, 名前)`） | `creds`・`env`・`env-names`・`history`・`inputs`・`session/`・`nxc/` | 700。`case.ensure_state` が作り、git の中なら `.git/info/exclude` に足す |
 
 ファイルの書式: `creds` は1行に `user:secret:説明`（`creds.parse_cred_line`）、`env` は `export 名前=値`（シェルが source する）、
@@ -219,7 +219,7 @@ python3 -I tests/unused.py                                 # 使っていない 
 python3 -I tests/pane_record.py [--memo] [キー ...]        # 画面に書かれたものを時刻つきで記録し、画面を消す制御などを数える（原因を探すとき）
 python3 -I tests/keys.py '<題>|<キー>...' ...              # キーを送って画面を文字で出す（手で確かめるとき。L:<文字> でそのまま打つ）
 python3 -I tests/theme_shots.py <出力> <配色> ...          # 配色の見本（主な画面を撮って並べた1枚。配色を作るとき）
-python3 -I tests/template.py                              # 設定なしで付属の雛形の箱ができ、場所が箱の形になるか
+python3 -I tests/template.py                              # 雛形の既定（URL）と、雛形の git リポジトリから案件を作る流れ（ネットにはつながない）
 hackdeck check                                             # コマンド帳
 ```
 
