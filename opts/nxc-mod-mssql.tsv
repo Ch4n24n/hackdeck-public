@@ -1,0 +1,6 @@
+# netexec mssql のモジュール
+mssql_priv	権限昇格の道
+enum_impersonate	なりすませる相手
+enum_logins	ログインの一覧
+mssql_coerce -o LISTENER=10.10.14.1	認証を強制させる
+enable_cmdshell -o ACTION=enable	xp_cmdshell を有効に

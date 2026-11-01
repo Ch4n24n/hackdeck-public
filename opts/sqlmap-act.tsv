@@ -1,0 +1,8 @@
+# sqlmap で何をするか
+--dbs	DB の一覧
+-D <sqlmap_db> --tables	テーブルの一覧（DB 名を続けて聞く）
+-D <sqlmap_db> -T <sqlmap_table> --columns	列の一覧（DB 名・テーブル名を続けて聞く。中身を抜く前に、どの列があるかを見る）
+-D <sqlmap_db> -T <sqlmap_table> --dump	テーブルの中身を抜く（DB 名・テーブル名を続けて聞く）
+--current-user --is-dba	いまのユーザーと DBA か
+--file-read /etc/passwd	ファイルを読む
+--os-shell	OS のシェル

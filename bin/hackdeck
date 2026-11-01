@@ -1,0 +1,11 @@
+#!/usr/bin/python3 -IS
+# hackdeck の起動口。本体は ../hackdeck/（モジュールの地図は ../docs/DESIGN.md）。
+# -I: 環境変数の PYTHON* と自分の site-packages を見ない。-S: site を読まない（標準ライブラリだけで動く。fzf から打つたびに
+# 起き直すので、起動を速くする。2026-11-01）。pathlib も読まない（読むのに時間がかかる。要るモジュールが自分で読む）
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+from hackdeck.cli import main  # noqa: E402
+
+sys.exit(main(sys.argv[1:]))

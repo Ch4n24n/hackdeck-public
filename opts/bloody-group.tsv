@@ -1,0 +1,3 @@
+# AddSelf・AddMember でグループに入れる・確かめる（値・表示名・説明。入れるのはふつう自分）
+add groupMember '<group>' '<member>'	グループに入れる	入れる人（ふつうは自分）をグループに入れる。そのグループの権限（Domain Admins など）を得るため
+get membership '<member>'	入っているグループを見る	グループに入れたかを確かめる（入れた人が入っているグループの一覧）

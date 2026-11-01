@@ -1,0 +1,19 @@
+# netexec smb のオプション（ログで多い順）
+	（オプションなし）
+--shares	共有の一覧と権限
+--users	ユーザーの一覧
+--rid-brute	RID を総当たりしてユーザーを出す
+--pass-pol	パスワードポリシー
+-M <nxc_mod>	モジュールを使う（次にモジュールを選ぶ）
+--local-auth	ローカルアカウントで認証
+--continue-on-success	当たっても止めない（スプレー）
+--local-groups	ローカルグループ
+--groups	ドメインのグループ
+--sam	SAM のハッシュ（管理者）
+--lsa	LSA シークレット（管理者）
+--dpapi	DPAPI の資格情報（管理者）
+--ntds	NTDS（DC の管理者）
+-x whoami	cmd で実行
+-X '$PSVersionTable'	PowerShell で実行
+--spider C$ --regex .	共有の中を再帰で見る
+--generate-tgt ./tgt	TGT を作って保存

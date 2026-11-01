@@ -1,0 +1,5 @@
+# hackdeck が読む秘密の置き場所の見本（中身はリポジトリに入れない）
+#
+# ~/.config/hackdeck/wpscan-api-token
+#   WPScan の API トークンを1行で。wpscan のコマンドが $(cat …) で読む。
+#   printf '%s\n' 'ここにトークン' > ~/.config/hackdeck/wpscan-api-token && chmod 600 ~/.config/hackdeck/wpscan-api-token

@@ -1,0 +1,10 @@
+{
+  "attachmentFolderPath": "90-添付",
+  "useMarkdownLinks": false,
+  "alwaysUpdateLinks": true,
+  "userIgnoreFilters": [
+    "91-ログ/"
+  ],
+  "newFileLocation": "folder",
+  "newFileFolderPath": "01-メモ"
+}

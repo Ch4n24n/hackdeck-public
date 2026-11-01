@@ -1,0 +1,9 @@
+# netexec smb のモジュール（ログで使ったもの）
+lsassy	LSASS から資格情報
+gpp_autologin	GPP の自動ログオン
+gpp_password	GPP のパスワード
+coerce_plus	認証を強制させる（PetitPotam など）
+spooler	Print Spooler が動いているか
+ntdsutil	ntdsutil で NTDS
+backup_operator	Backup Operators で SAM/NTDS
+webdav	WebClient が動いているか

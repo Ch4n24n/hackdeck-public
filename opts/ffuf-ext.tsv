@@ -1,0 +1,6 @@
+# ffuf の -e（拡張子。コマンド帳の -e のあとに入る）
+.php	PHP
+.phps	PHP のソース
+.php,.txt,.bak	PHP＋控え
+.aspx,.asp	ASP.NET
+.html,.txt	静的

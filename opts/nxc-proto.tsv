@@ -1,0 +1,9 @@
+# netexec のプロトコル
+smb
+ldap
+winrm
+mssql
+rdp
+ssh
+ftp
+wmi

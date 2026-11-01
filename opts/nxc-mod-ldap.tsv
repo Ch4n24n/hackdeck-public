@@ -1,0 +1,10 @@
+# netexec ldap のモジュール（ログで使ったもの）
+adcs	証明書サービスを探す
+laps	LAPS のパスワード
+get-desc-users	説明欄にパスワード
+get-userPassword	userPassword 属性
+user-desc	説明欄
+maq	マシンを足せる数（MachineAccountQuota）
+sccm	SCCM を探す
+subnets	サブネット
+groupmembership -o USER=x	ユーザーのグループ

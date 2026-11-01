@@ -1,0 +1,7 @@
+# ファイルを john 用のハッシュにする道具
+keepass2john	KeePass（.kdbx）
+zip2john	ZIP
+ssh2john	SSH の秘密鍵
+office2john	Office
+pdf2john	PDF
+rar2john	RAR

@@ -1,0 +1,95 @@
+% 探索, rustscan
+
+# rustscan: 全ポートを速く探し、開いたポートを nmap で詳しく（tcp-port-scan.*）
+rustscan -a <host> --ulimit 5000 -t 10000 -- -sC -sV --source-port 53 -reason -T5 -oA tcp-port-scan
+
+
+% 探索, ホスト
+
+# netexec・nmap・fping: /24 のホストを見つける（smb・winrm・ldap・rdp・ポート・ping から選ぶ）
+<sweep> <net_ip>/24
+
+
+% 探索, dig
+
+# dig: ゾーン転送（AXFR）を試す
+dig axfr @<dns> <domain>
+
+
+% 探索, showmount
+
+# showmount: NFS の共有の一覧
+showmount -e <host>
+
+
+% 探索, smbclient
+
+# smbclient: 共有の一覧を見る（匿名・パスワード・ハッシュ）
+smbclient -L <host> <auth_smb>
+
+# smbclient: 共有に入る（匿名・パスワード・ハッシュ）
+smbclient //<host>/<share> <auth_smb>
+
+
+% 探索, impacket-smbclient
+
+# impacket-smbclient: 共有に入る（パスワード・ハッシュ。中で shares・use 共有名。Kerberos も選べる）
+impacket-smbclient <auth_imp>
+
+
+% 探索, netexec
+
+# netexec: プロトコル・資格情報・オプションを選ぶ
+netexec <proto> <host> <auth_nxc> <nxc_opt>
+
+# netexec: SMB の共有を見る・中を探す（--shares・--spider。名前・中身を --pattern か --regex で）
+netexec smb <host> <auth_nxc_smb> <share_opt>
+
+
+% 探索, enum4linux-ng
+
+# enum4linux-ng: SMB・AD の情報を一通り（NULL セッション・パスワード・Kerberos チケット）
+enum4linux-ng -A <auth_e4l>
+
+
+% 探索, bloodhound
+
+
+# bloodhound-ce-python: AD を集める（BloodHound CE 用。-dc は FQDN・-ns は DC の IP）
+sudo bloodhound-ce-python -d <domain> <auth_bh> -c All -dc <dc_fqdn> -ns <dns>
+
+
+% 探索, ffuf
+
+# ffuf: vhost を探す（Host ヘッダー）
+ffuf -w <wl_vhost>:FUZZ -u http://<host>/ -H "Host: FUZZ.<domain>" -t 100 -c -ic -fs <fs>
+
+# ffuf: 拡張子を探す（index.FUZZ）
+ffuf -w <wl_ext>:FUZZ -u http://<web>/indexFUZZ -c -ic -t 100
+
+# ffuf: ページファジング（ディレクトリとファイルを探す。拡張子つき）
+ffuf -w <wl_dir>:FUZZ -u "<page_url>/FUZZ" -c -ic -r -t 100 -e <ffuf_ext> -fs <fs>
+
+# ffuf: パラメータファジング（GET・POST のパラメータ名を探す）
+ffuf -w <wl_param>:FUZZ <param_method> -t 100 -c -ic -fs <fs>
+
+# ffuf: LFI をファジング（URL の FUZZ に辞書を当てる。file= など）
+ffuf -w <wl_lfi>:FUZZ -u "<lfi_url>" -fs <fs>
+
+
+% 探索, reconspider
+
+# ReconSpider: Web を巡回してメール・リンク・外部参照などを集める
+ReconSpider.py <url>
+
+
+% 探索, eyewitness
+
+# eyewitness: vhost の一覧の画面を撮る
+eyewitness -f <urlfile> -d eyewitness --timeout 30
+
+
+% 探索, wpscan
+
+# wpscan: WordPress を調べる
+sudo wpscan --url <url> --enumerate --api-token "$(cat ~/.config/hackdeck/wpscan-api-token)" -t 500

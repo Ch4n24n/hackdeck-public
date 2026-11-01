@@ -1,0 +1,6 @@
+# ligolo で転送するポート（listener_add。0.0.0.0 で待ち 127.0.0.1 の同じポートへ）。数字順
+445	SMB（相手の \\自分\share）
+8000	http.server（落とす）
+8100	uploadserver（送り返す）
+8200	予備
+9001	ligolo agent の戻り（ダブルピボット）

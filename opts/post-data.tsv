@@ -1,0 +1,5 @@
+# POST の中身（FUZZ が総当たりの位置）
+username=FUZZ&password=test
+user=FUZZ&pass=test
+username=admin&password=FUZZ
+user=admin&pass=FUZZ

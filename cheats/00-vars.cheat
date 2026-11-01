@@ -1,0 +1,415 @@
+; 変数の候補をここ1か所で定義する（navi は使わない。bin/hackdeck が自分でこのファイルを読む）。
+; `@ vars` は書かない・読まない。$ 定義はどの .cheat からも共通に見える前提。
+; 候補は「値<TAB>説明」。値（先頭のタブまで）だけが変数に入り、説明は選ぶときに見えるだけ。
+; 変数名は小文字にする。他の変数の値を使う場合は <他の変数名> をコマンド文字列に書く
+; （auth_imp が <domain> <host> を使うのと同じ）。bin/hackdeck が、必要な分を先に解決してから渡す。
+; すべての行を hackdeck から出す（決まった値も `hackdeck value` で）。書き足したら `hackdeck check` で点検する。
+; `$` 定義の直後の行が `! 値` なら、変数の画面のプレビューに「例: 値」として出す（`例:` は
+; 自動で付く。候補が無い＝その場で打つ変数ほど効く。候補がある変数は候補自体が例になるので、無くてもよい）。
+; `$` の行の直後に `! 例` と `? 説明`（何を入れるか）を書く。入力欄に薄い字で「説明（例：…）」と出る
+; 候補の値の中に <変数名> を書くと、その候補を選んだあとで続けてその変数を聞く（分岐。auth_nxc の
+; 「パスワード」= -u <pw_user> -p <pw_pass>、nxc_opt の -M <nxc_mod>）。中の変数にも $ 定義が要る。
+; 候補は「値<TAB>表示名<TAB>説明」の3列でもよい（画面には表示名と説明だけが出る。認証の形がこの形）。
+
+% vars
+
+; --- 相手と自分 ---
+$ host: hackdeck hosts
+! 10.10.10.10
+? 相手の IP か名前
+$ web: hackdeck hosts
+! shop.corp.htb
+? Web サーバーの名前か IP。vhost なら名前
+$ dc: hackdeck dcs
+! $TARGET
+? DC の IP か名前。Kerberos なら名前
+$ dc_fqdn: hackdeck fqdns
+! dc01.corp.htb
+? DC の名前。FQDN で
+$ dns: hackdeck dcs
+! $TARGET
+? 問い合わせる DNS サーバーの IP。AD なら DC
+$ net_ip: hackdeck hostips
+! $TARGET
+? 調べる範囲にある IP。この /24 を見る
+$ url: hackdeck urls
+! http://shop.corp.htb
+? 相手の URL。http:// から書き、パスを足してよい
+; ffuf で狙うページの URL（候補なし。どのパスに送るかは相手しだいなので打つ。2026-11-01、本人の指摘）
+$ login_url: hackdeck value
+! http://shop.corp.htb/login.php
+? ログインを送る URL。パスまで打つ。GET なら ?username=FUZZ&password=test のように FUZZ も
+$ lfi_url: hackdeck value
+! http://shop.corp.htb/index.php?page=FUZZ
+? FUZZ を入れた URL。?file=FUZZ など
+$ param_url: hackdeck value
+! http://shop.corp.htb/admin/admin.php
+? パラメータ名を探すページの URL。パスまで打つ（GET は後ろに ?FUZZ=key が付く）
+$ param_body: hackdeck value
+! username=admin&password=test
+? POST で一緒に送る中身（Burp で見た本文）。後ろに &FUZZ=key が付く。無ければ空のまま Enter
+$ page_url: hackdeck value
+! http://shop.corp.htb
+? 探す場所の URL。後ろに /FUZZ が付く
+; /etc/hosts に足す行（2026-10-30）。IP は $名前 のまま（打つときに展開される）。名前は打つ（空白で区切って並べる）
+$ hosts_ip: hackdeck hostips
+! $TARGET
+? 足す行の IP
+$ hosts_names: hackdeck hostnames
+! dc01.corp.htb corp.htb dc01
+? 足す行の名前。空白で区切って並べる
+$ domain: hackdeck domains
+! corp.htb
+? ドメイン名
+$ realm: hackdeck value "$(echo '<domain>' | tr '[:lower:]' '[:upper:]')"
+! CORP.HTB
+? レルム。ドメインを大文字にしたもので、Enter でよい
+; ドメインの DN は、決めた資格情報のドメインから作る（2026-10-31。前はドメインを聞いてから作っていた）
+$ domain_dn: hackdeck domaindn
+! DC=corp,DC=htb
+? ドメインの DN。資格情報のドメインから作るので Enter でよい
+$ krb5_conf: hackdeck value "/var/tmp/krb5.$(echo '<domain>' | cut -d. -f1).conf"
+! /var/tmp/krb5.corp.conf
+? 作る krb5.conf の置き場所。Enter でよい
+$ sid: hackdeck value
+! S-1-5-21-1392491010-1358638721-2126982587-1111
+? 戻すユーザーの SID。探したときの objectSid
+$ upn: hackdeck value 'administrator@<domain>'
+! administrator@corp.htb
+$ lhost: hackdeck lhost
+! 10.10.14.5
+? 手元の IP。相手がつなぎ返す先・落としに来る先。tun0 など
+; つなぎ返す先（ligolo agent・wget・FileUpload。相手に貼るので値で。ダブルピボットもあるので env と /etc/hosts から）
+$ connect: hackdeck connect
+! 10.10.14.9
+? つなぎ返す先の IP。ふつうは自分（tun0）、ダブルピボットなら手前のホスト
+$ iface: hackdeck ifaces
+! tun0
+$ cidr: hackdeck cidrs
+! 10.10.10.0/24
+$ sweep_ports: hackdeck opts sweep-ports
+! 21,22,80,443,445,3389
+; 相手の Windows のフォルダ（reg save の保存先。2026-10-30）。C:\temp が無い箱では、reg save が registry key or value の
+; エラーで止まった（前に解いた箱の端末ログ）
+$ remote_dir: hackdeck value 'C:\temp' 'C:\Windows\Temp' 'C:\Users\Public'
+! C:\temp
+? 相手の Windows の保存先。無いフォルダだと registry key or value のエラーになる
+
+; --- 人と資格情報（資格情報のタブから） ---
+$ user: hackdeck users
+! john
+$ target_user: hackdeck users
+! svc_sql
+? 相手のアカウント名（sAMAccountName。gMSA・コンピューターは 名前$）
+; 付ける先・入れる人（AddSelf・GenericAll・dacledit の -principal・owneredit の -new-owner）。いちばん下が自分（決めた資格情報の
+; ユーザー）で、最初のカーソルもそこ（2026-10-31）
+$ member: hackdeck users self
+! alice
+? 付ける先・入れる人。ふつうは自分（いま使う資格情報のユーザー）
+; dacledit・owneredit の対象。名前・DN・SID を打つと -target・-target-dn・-target-sid になる（dacledit の DN は -inheritance も）
+$ dacl_target: hackdeck adtarget dacl
+! svc_sql
+? 書き換える相手。ユーザー・グループは名前、OU は DN（BloodHound の distinguishedname を貼る）
+$ owner_target: hackdeck adtarget owner
+! svc_sql
+? 持ち主を変える相手。ユーザー・グループは名前、OU は DN
+$ impersonate: hackdeck value Administrator
+! Administrator
+$ group: hackdeck opts ad-group
+! Domain Admins
+? 入れるグループ（BloodHound の AddSelf・AddMember の先）
+$ new_pass: hackdeck opts new-pass
+! Password123!
+? 新しいパスワード。Windows は複雑さの決まり（大文字・小文字・数字・記号）を満たすもの
+$ new_user: hackdeck value hacker
+! hacker
+? 作るアカウントの名前
+$ brute_how: hackdeck authforms brute "$proto"
+! NTLM 認証（パスワード）
+? 総当たりの認証のしかた。パスワードかハッシュか
+; 総当たりの中の変数は、手元のファイル（userfile・passfile・hashfile。打った1つでもよい）。下の spray_pass・spray_hash は
+; 前のスプレーの変数（2026-10-30 から使っていない）
+$ spray_pass: hackdeck passwords
+! Password123!
+$ spray_hash: hackdeck hashes
+! 31d6cfe0d16ae931b73c59d7e0c089c0
+$ auth_nxc: hackdeck authcreds nxc "$proto"
+! -u 'administrator' -p 'Passw0rd!'
+? 使う資格情報。資格情報のタブの組・チケット・匿名から選ぶ
+; 資格情報の行は、続けて認証のしかたを聞く（2026-10-30、1番の作り直し）
+$ nxc_how: hackdeck authhow nxc
+! -k
+? 認証のしかた。何も足さないと NTLM 認証
+; impacket 実行系・GetUserSPNs/dacledit/owneredit・bloodyAD の、資格情報のあとの認証のしかた（-k を付けるか。2026-10-31）。
+; -k は KRB5CCNAME のチケット（無ければパスワード・ハッシュから取得）。Kerberos のときは行き先を名前（FQDN）にする
+$ krb_how: hackdeck authhow krb
+! -k
+? 認証のしかた。何も足さないと NTLM 認証。-k で Kerberos（行き先は FQDN）
+; mssqlclient の、資格情報のあとの認証のしかた（2026-10-31）。初期カーソルは資格情報の形から（ドメインのアカウント・NT ハッシュ＝
+; Windows 認証、sa のような前置なし＝SQL のログイン）。選び直せる
+$ mssql_how: hackdeck authhow mssql
+! -windows-auth
+? Windows 認証（AD のアカウント）か、SQL のログイン（sa など）か
+; 認証の形の中の変数。ユーザーの値は shell_safe 済みなので、<pw_user> は引用符で囲まずに渡す
+$ pw_user: hackdeck users-for pass
+! administrator
+$ pw_pass: hackdeck secrets-for pass <pw_user>
+! Password123!
+$ nt_user: hackdeck users-for nt
+! administrator
+$ nt_hash: hackdeck secrets-for nt <nt_user>
+! 31d6cfe0d16ae931b73c59d7e0c089c0
+; netexec の ldap 決め打ちのコマンド（AS-REP Roasting）の資格情報。プロトコルを聞かない（2026-10-30）
+$ auth_ldap: hackdeck authcreds nxc ldap
+! -u 'administrator' -p 'Passw0rd!'
+? 使う資格情報。資格情報のタブの組・チケット・匿名から選ぶ
+; netexec smb の決め打ち（共有のクロールなど）。プロトコルを聞かない。proto 版と同じ資格情報ピッカー（2026-10-31）
+$ auth_nxc_smb: hackdeck authcreds nxc smb
+! -u 'administrator' -p 'Passw0rd!'
+? 使う資格情報。資格情報のタブの組・チケット・匿名から選ぶ
+; enum4linux-ng（2026-10-31）。行き先を先に聞き、値に入れる（本人の例 -A $TARGET・-A $TARGET -u 'ドメイン\名前' -p '…'・
+; -A -K $KRB5CCNAME 名前）。チケットで行き先が IP なら名前を続けて聞く。パスワードだけ（-H はノートに無い）
+$ auth_e4l: hackdeck authcreds e4l '<host>'
+! $TARGET -u 'corp.htb\john' -p 'Password123!'
+? 使う資格情報。パスワード・Kerberos のチケット・NULL セッション（資格情報なし）から選ぶ
+$ auth_winrm: hackdeck authcreds winrm
+! -u john -p 'Password123!'
+? 使う資格情報。チケットなら Kerberos 認証
+; impacket・mssqlclient・smbclient・xfreerdp・bloodyAD も資格情報を先に選ぶ形（2026-10-31）。ドメインは資格情報の範囲から
+; 決めるので聞かない。行き先（<host>・<dc>）は資格情報より先に聞く。チケットで行き先が IP なら、名前（fqdn・dc_fqdn）を続けて聞く
+$ auth_imp: hackdeck authcreds imp '<host>'
+! corp.htb/john:'Password123!'@$TARGET
+? 使う資格情報。パスワード・NT ハッシュ（このあと NTLM/Kerberos を選ぶ）
+$ auth_mssql: hackdeck authcreds mssql '<host>'
+! corp.htb/john:'Password123!'@$TARGET
+? 使う資格情報。このあと Windows 認証か SQL のログインかを選ぶ
+$ auth_impn: hackdeck authcreds impn '<dc>'
+! corp.htb/john:'Password123!'
+? 使う資格情報。ドメインのアカウント（このあと NTLM/Kerberos を選ぶ）
+; secretsdump を DC へ（2026-10-30）。資格情報を先に選ぶ形。チケットの名乗りは KRB5CCNAME の持ち主
+$ auth_dump: hackdeck authcreds dump '<dc>'
+! corp.htb/administrator:'Password123!'@$TARGET
+? 使う資格情報。パスワード・NT ハッシュ（このあと NTLM/Kerberos を選ぶ）
+$ auth_rdp: hackdeck authcreds rdp
+! /u:'john' /p:'Password123!' /d:corp.htb
+? 使う資格情報。NT ハッシュ（/pth:）は相手に Restricted Admin が要る
+$ auth_bloody: hackdeck authcreds bloody '<dc>'
+! -u 'john' -p 'Password123!' -d corp.htb --host $TARGET
+? 使う資格情報。ドメインのアカウント（このあと NTLM/Kerberos を選ぶ）
+$ auth_certipy: hackdeck auth certipy '<domain>'
+! -u 'john@corp.htb' -p 'Password123!'
+$ auth_bh: hackdeck auth bh
+! -u john -p 'Password123!'
+? 使う資格情報。bloodhound-python の -u …（-p か --hashes）の形
+$ auth_smb: hackdeck authcreds smb
+! -U 'corp.htb/john%Password123!'
+? 使う資格情報。匿名（-N）・パスワード・NT ハッシュ
+$ ccache: hackdeck ccache
+! john.ccache
+
+; --- 手元のファイル（いまの場所の、新しい順）。/ を打つとその場所の中身に替わる ---
+$ userfile: hackdeck files user
+! users.txt
+? ユーザー名の一覧のファイルか、ユーザー名1つ
+$ passfile: hackdeck files pass
+! passwords.txt
+? パスワードの一覧のファイルか、パスワード1つ
+$ hashfile: hackdeck files hash
+! hash.txt
+? NT ハッシュの一覧のファイルか、ハッシュ1つ
+$ crackfile: hackdeck files hash
+! kerberoasting.txt
+? crack するハッシュのファイルか、ハッシュ1つ（hashcat の入力）
+$ reqfile: hackdeck files req
+! sqli.req
+? 保存したリクエストのファイル。Burp で保存したもの
+$ urlfile: hackdeck files url
+! vhosts.txt
+? URL か名前を1行ずつ並べたファイル
+$ pfx: hackdeck files pfx
+! cert.pfx
+$ target_file: hackdeck files any
+! output.txt
+$ sam_file: hackdeck files sam
+! sam.hive
+$ security_file: hackdeck files security
+! security.hive
+$ system_file: hackdeck files system
+! system.hive
+$ hive_dir: hackdeck files dir
+! ~hack/
+? SAM・SYSTEM・SECURITY のある手元のフォルダ。ここで secretsdump を走らせる
+$ ovpn: hackdeck files ovpn
+! academy-exam.ovpn
+? つなぐ VPN の設定ファイル（.ovpn）
+$ xfer_file: hackdeck files --dir ~/xfer '*'
+! loot.zip
+? ~/xfer の、相手に落とすファイル
+; 送り返すファイル（FileUpload。reg save の SAM・SYSTEM・SECURITY、procdump の lsass.dmp。フルパスも打てる）
+$ upload_file: hackdeck value SAM SYSTEM SECURITY lsass.dmp
+! lsass.dmp
+? 送り返す、相手の上のファイル。loot の名前かフルパス
+
+; --- 道具ごとの一覧（opts/*.tsv） ---
+$ proto: hackdeck opts nxc-proto
+! smb
+? netexec のプロトコル
+$ dump_opt: hackdeck opts dump-opt
+! -just-dc-ntlm
+$ nxc_opt: hackdeck opts "nxc-$proto"
+! --shares（proto=smb のとき）
+? netexec のオプション。プロトコルごとに違う
+$ nxc_mod: hackdeck opts "nxc-mod-$proto"
+! lsassy（proto=smb のとき）
+? netexec のモジュール
+$ exec: hackdeck opts impacket-exec
+! wmiexec
+? impacket のどの道具で入るか
+; /24 のホストの探し方（2026-10-31、本人の指定の7つ。nmap のポートは値に入れたので、sweep_ports は使わない）
+$ sweep: hackdeck opts host-sweep
+! netexec smb
+? ホストの探し方。netexec はそのサービス、nmap は TCP のポート、fping は ping で探す
+; bloodyAD の「する」と「確かめる」の組（2026-10-31、本人の指示でまとめた。前は別のコマンドだった）。値の中の変数は続けて聞く
+$ deleted_act: hackdeck opts bloody-deleted
+! 探す
+? Deleted Objects でやること。探して SID を調べてから、SID で戻す
+$ spn_act: hackdeck opts bloody-spn
+! SPN を書く
+? SPN でやること。書いてから、書けたかを確かめる（Targeted Kerberoasting）
+$ group_act: hackdeck opts bloody-group
+! グループに入れる
+? グループでやること。入れてから、入れたかを確かめる
+$ win_persist: hackdeck opts win-persist
+! 端末の管理者
+? 作るアカウントの種類。端末の管理者かドメインの管理者か
+$ mode: hackdeck opts hashcat-mode
+! 1000（NTLM）
+? hashcat のモード番号。ハッシュの見分け方は一覧の説明に
+$ x2john: hackdeck opts x2john
+! zip2john
+$ wl_dir: hackdeck opts wl-dir
+! /usr/share/seclists/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-medium.txt
+? ディレクトリ探しの単語リスト
+$ wl_ext: hackdeck opts wl-ext
+! /usr/share/seclists/Discovery/Web-Content/web-extensions.txt
+? 拡張子探しの単語リスト
+$ wl_param: hackdeck opts wl-param
+! /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt
+? パラメータ名探しの単語リスト
+$ wl_bypass: hackdeck opts wl-bypass
+! ~cmn/wordlists/Auth_Bypass.txt
+? 送るペイロードの単語リスト
+$ wl_vhost: hackdeck opts wl-vhost
+! /usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt
+? vhost 探しの単語リスト
+$ wl_lfi: hackdeck opts wl-lfi
+! /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt
+? LFI（パストラバーサル）の単語リスト
+$ wl_pass: hackdeck opts wl-pass
+! /usr/share/wordlists/rockyou.txt
+? パスワードの単語リスト
+$ ffuf_ext: hackdeck opts ffuf-ext
+! .php,.txt,.html
+? 足す拡張子。, で並べる
+$ fs: hackdeck opts ffuf-fs
+! 1234
+? 捨てる応答の大きさ。一度流して、多い大きさを見る
+$ login_path: hackdeck opts login-path
+! index.php
+? ログインのページのパス。先頭の / は要らない
+$ post_data: hackdeck opts post-data
+! username=FUZZ&password=test
+? 送る中身。FUZZ が入れ替わる所
+$ sqlmap_act: hackdeck opts sqlmap-act
+! --dbs
+? sqlmap でやること
+$ sqlmap_lvl: hackdeck opts sqlmap-level
+! --level 5 --risk 3
+? 念入りに調べるか。--level 5 --risk 3 を付けるか
+$ sqlmap_db: hackdeck value
+! status
+? データベース名。DB の一覧で出たもの
+$ sqlmap_table: hackdeck value
+! company
+? テーブル名。テーブルの一覧で出たもの
+; hydra の Web のログイン（2026-10-30）。引用符の中の変数は、打った文字をそのまま入れる
+$ hydra_user: hackdeck value admin
+! admin
+? ログインするユーザー名
+$ hydra_form: hackdeck value http-post-form http-get-form
+! http-post-form
+? フォームの送り方。POST か GET
+$ user_param: hackdeck value username user email login
+! username
+? ユーザー名を入れるパラメータ名
+$ pass_param: hackdeck value password pass passwd pwd
+! password
+? パスワードを入れるパラメータ名
+$ form_extra: hackdeck value
+! &submit=Login
+? ほかに送るパラメータ。& から書く。無ければ空のまま Enter
+$ fail_text: hackdeck value invalid Invalid
+! Invalid username or password.
+? ログインに失敗したときにページに出る文
+$ param_method: hackdeck opts ffuf-param
+! GET
+? パラメータを送る場所。GET は URL、POST は中身（-d）
+$ http_method: hackdeck opts ffuf-method
+! POST
+? 送るメソッド
+$ hydra_svc: hackdeck opts hydra-svc
+! ssh
+$ http_port: hackdeck opts http-port
+! 80
+$ http_dir: hackdeck opts http-dir
+! /var/www/html
+$ listen_port: hackdeck opts listen-port
+! 8200
+? リバースシェルを待ち受けるポート。ピボットの iptables で開ける定番セットと同じ
+$ fwd_port: hackdeck opts ligolo-port
+! 445
+? ligolo で転送するポート（0.0.0.0 で待ち 127.0.0.1 の同じポートへ）
+$ envname: hackdeck opts env-name
+! PATH
+
+; --- その場で打つもの（候補なし。何も当たらないまま Enter で打った文字が入る。Ctrl+T は
+;     2026-10-28 から配色の設定画面なので、ここでは使わない） ---
+$ ca: hackdeck value
+! CORP-CA
+$ template: hackdeck value
+! User
+$ spn: hackdeck value
+! MSSQLSvc/sql01.corp.htb:1433
+$ share: hackdeck value 'C$' 'ADMIN$' SYSVOL NETLOGON
+! C$
+? 入る共有の名前。共有の一覧（-L）で見たもの
+$ pattern: hackdeck value password passw cpassword secret cred
+! password
+? 探す文字列（--pattern）か正規表現（--regex）。名前に、--content なら中身にも合わせる
+; SMB の共有でやること（2026-10-31、本人の指定の5つ）。--spider は共有と探すものを続けて聞く
+$ share_opt: hackdeck opts nxc-share
+! --shares
+? 共有でやること。一覧（--shares）か、中を探す（--spider）か
+; 相手の dumb shell を TTY にするしかた（2026-10-31、本人「まとめていい」で1つに）
+$ tty: hackdeck opts tty
+! python3 -c 'import pty; pty.spawn("/bin/sh")'
+? TTY にするしかた。相手にある道具で選ぶ
+; ピボットの INPUT を開ける形（2026-10-31）。定番セットはいまの5つ。任意のポートは1つずつ
+$ fw_rule: hackdeck opts fw-rule
+! 定番セット
+? 開けるポート。定番セット（445・8000・8100・8200・9001）か、任意のポートを1つ
+$ fw_port: hackdeck opts listen-port
+! 8200
+? 開けるポート（相手のピボットで受ける）。定番の5つから選ぶか、打つ
+; 相手の OS で形が変わるもの（2026-10-31、本人の指示でまとめた。前は OS ごとに別のコマンドだった）
+$ wget_os: hackdeck opts wget-os
+! Windows（PowerShell）
+? 相手の OS。PowerShell の wget は保存先（-outfile）が要る
+$ ligolo_agent: hackdeck opts ligolo-agent
+! Linux
+? 相手の OS。agent をバックグラウンドで動かす形が違う
+$ remote_file: hackdeck value
+! C:\Windows\Temp\out.txt
+? 送り返す、相手の上のファイル。フルパスで
+$ envvalue: hackdeck value
+! 1

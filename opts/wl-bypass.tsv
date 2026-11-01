@@ -1,0 +1,3 @@
+# ログインの回避（SQLi）を試すワードリスト
+~cmn/wordlists/Auth_Bypass.txt	PayloadsAllTheThings の Auth_Bypass（いつもの）
+/usr/share/seclists/Fuzzing/Databases/SQLi/sqli.auth.bypass.txt	seclists の sqli.auth.bypass

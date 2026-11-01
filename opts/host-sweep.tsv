@@ -1,0 +1,8 @@
+# /24 のホストの探し方（本人の指定の順）。netexec は、開いているホストを名前・ドメインつきで出す
+netexec smb	SMB（445）が開いているホスト
+netexec winrm	WinRM（5985）が開いているホスト
+netexec ldap	LDAP（389）が開いているホスト。ふつうは DC
+netexec rdp	RDP（3389）が開いているホスト
+nmap -sn -PS80,443	Web のポート（80・443）に TCP で返事をするホスト
+nmap -sn -PS139,445	SMB のポート（139・445）に TCP で返事をするホスト
+fping -asgq	ping（ICMP）に返事をするホスト

@@ -1,0 +1,5 @@
+# パスワードのワードリスト
+/usr/share/seclists/Passwords/Common-Credentials/xato-net-10-million-passwords-1000000.txt	xato 上位100万（Web のログイン）
+/usr/share/wordlists/rockyou.txt	rockyou
+/usr/share/seclists/Passwords/Common-Credentials/darkweb2017_top-10000.txt	darkweb2017 上位1万
+/usr/share/seclists/Passwords/Common-Credentials/xato-net-10-million-passwords-10000.txt	xato 上位1万

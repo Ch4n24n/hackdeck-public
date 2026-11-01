@@ -1,0 +1,4 @@
+# netexec wmi のオプション
+	（オプションなし）
+-x whoami	コマンドを実行
+--local-auth	ローカルアカウントで認証

@@ -1,0 +1,16 @@
+% ピボット, ligolo
+
+# ligolo-proxy: プロキシを立てる（自己署名・9001 で待つ）
+sudo ligolo-proxy -selfcert -laddr 0.0.0.0:9001
+
+# ligolo: トンネルを1つ開く（proxy のコンソールで。ポートを変えて繰り返す。; ではつなげない）
+listener_add --addr 0.0.0.0:<fwd_port> --to 127.0.0.1:<fwd_port>
+
+# ligolo agent: 手元の proxy につなぐ（相手に貼る。バックグラウンドで。相手の OS で Linux・Windows を選ぶ）
+<ligolo_agent>
+
+
+% ピボット, iptables
+
+# iptables: 相手（ピボット）の INPUT を開ける（定番セット 445・8000・8100・8200・9001 か、任意のポート）
+iptables <fw_rule>

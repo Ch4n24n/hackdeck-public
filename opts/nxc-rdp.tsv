@@ -1,0 +1,4 @@
+# netexec rdp のオプション
+	（オプションなし）
+--local-auth	ローカルアカウントで認証
+--screenshot	画面を撮る

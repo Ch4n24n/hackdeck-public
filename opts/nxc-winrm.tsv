@@ -1,0 +1,6 @@
+# netexec winrm のオプション
+	（オプションなし）
+-x whoami	cmd で実行
+-X '$PSVersionTable'	PowerShell で実行
+-M <nxc_mod>	モジュールを使う（次にモジュールを選ぶ）
+--local-auth	ローカルアカウントで認証

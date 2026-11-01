@@ -1,0 +1,3 @@
+# ピボットの INPUT を開ける形（値・表示名・説明）。定番セットは本人の指定の5つ、任意のポートは1つずつ入れる
+-P INPUT ACCEPT; for p in 445 8000 8100 8200 9001; do iptables -I INPUT -p tcp -m tcp --dport $p -j ACCEPT; done	定番セット	INPUT を ACCEPT にし、445・8000・8100・8200・9001 を開ける
+-I INPUT -p tcp -m tcp --dport <fw_port> -j ACCEPT	任意のポート	打ったポートを1つ開ける

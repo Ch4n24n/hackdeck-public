@@ -1,0 +1,5 @@
+# LFI（ローカルファイルインクルード・パストラバーサル）のペイロードのワードリスト
+/usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt	Jhaddix（まとめ・定番）
+/usr/share/seclists/Fuzzing/LFI/LFI-gracefulsecurity-linux.txt	Linux 向け
+/usr/share/seclists/Fuzzing/LFI/LFI-gracefulsecurity-windows.txt	Windows 向け
+/usr/share/seclists/Fuzzing/LFI/LFI-LFISuite-pathtotest-huge.txt	LFISuite（大きい）

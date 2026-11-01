@@ -1,0 +1,7 @@
+# 環境変数の名前の候補（どの案件でもシェルの export を書き戻す名前は、設定のタブの「既定の環境変数」で決める）
+TARGET
+DOMAIN
+DC_IP
+LHOST
+RHOST
+KRB5CCNAME

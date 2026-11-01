@@ -1,0 +1,14 @@
+# netexec ldap のオプション
+	（オプションなし）
+--users	ユーザーの一覧
+--groups	グループの一覧
+--computers	コンピューターの一覧
+--admin-count	adminCount=1 のアカウント
+-M <nxc_mod>	モジュールを使う（次にモジュールを選ぶ）
+--password-not-required	パスワード不要のアカウント
+--trusted-for-delegation	委任を信頼されたアカウント
+--find-delegation	委任の設定を一覧
+--kerberoasting kerberoast.hash	Kerberoast
+--asreproast asrep.hash	AS-REP Roast
+--gmsa	gMSA のパスワード
+--bloodhound -c All	BloodHound 用に集める

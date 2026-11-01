@@ -1,0 +1,7 @@
+# netexec mssql のオプション
+	（オプションなし）
+--local-auth	ローカルアカウント（SQL 認証）
+-q 'SELECT name FROM master.dbo.sysdatabases'	DB の一覧
+-x whoami	xp_cmdshell で実行
+-M <nxc_mod>	モジュールを使う（次にモジュールを選ぶ）
+--rid-brute	RID を総当たり

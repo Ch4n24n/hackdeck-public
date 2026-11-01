@@ -1,0 +1,6 @@
+# ディレクトリ探しのワードリスト
+/usr/share/seclists/Discovery/Web-Content/DirBuster-2007_directory-list-2.3-medium.txt	medium（いつもの）
+/usr/share/seclists/Discovery/Web-Content/quickhits.txt	quickhits（速い）
+/usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt	raft medium
+/usr/share/seclists/Discovery/Web-Content/common.txt	common
+/usr/share/dirb/wordlists/big.txt	dirb big

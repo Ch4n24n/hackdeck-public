@@ -1,0 +1,4 @@
+# 相手の dumb shell を TTY にするしかた（相手にある道具で選ぶ）
+python3 -c 'import pty; pty.spawn("/bin/sh")'	python3 の pty（相手に python3 がある）
+python -c 'import pty; pty.spawn("/bin/sh")'	python の pty（python3 が無く python がある）
+script -qc /bin/bash /dev/null	script（python が無いとき）

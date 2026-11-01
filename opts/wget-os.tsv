@@ -1,0 +1,3 @@
+# wget で相手に落とすときの、相手の OS（値・表示名・説明）。Linux は何も足さない
+-outfile <xfer_file>	Windows（PowerShell）	PowerShell の wget は保存先（-outfile）が要る
+	Linux	そのまま（同じ名前で保存される）

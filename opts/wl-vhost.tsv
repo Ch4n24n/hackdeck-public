@@ -1,0 +1,6 @@
+# vhost 探しのワードリスト
+/usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt	11万（いつもの）
+/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt	5000（速い）
+/usr/share/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt	bitquark 10万
+/usr/share/seclists/Discovery/DNS/services-names.txt	サービスの名前
+/usr/share/dirb/wordlists/big.txt	dirb big

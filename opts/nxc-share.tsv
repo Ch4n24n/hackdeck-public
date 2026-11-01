@@ -1,0 +1,6 @@
+# netexec smb の共有でやること（本人の指定の5つ。この順）
+--shares	共有の一覧と、読めるか・書けるか
+--spider <share> --pattern <pattern>	共有の中を、名前に文字列を含むファイルで探す
+--spider <share> --regex <pattern>	共有の中を、名前が正規表現に合うファイルで探す
+--spider <share> --pattern <pattern> --content	中身も文字列で探す
+--spider <share> --regex <pattern> --content	中身も正規表現で探す

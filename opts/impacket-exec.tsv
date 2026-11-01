@@ -1,0 +1,6 @@
+# impacket で入る道具
+psexec	サービスを作って入る（SYSTEM。ADMIN$ に書ける管理者が要る）
+wmiexec	WMI で入る（その人の権限。ファイルを置かない）
+smbexec	サービスで1つずつ打つ（SYSTEM。ファイルを置かない）
+atexec	タスクで1回だけ打つ（後ろに打つコマンドを書き足す。シェルにはならない）
+dcomexec	DCOM で入る（その人の権限）

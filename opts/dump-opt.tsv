@@ -1,0 +1,8 @@
+# impacket-secretsdump のオプション（2026-10-30、棚卸しの6番で本人が OK）
+	（オプションなし）
+-just-dc-ntlm	DCSync で NT ハッシュだけ
+-just-dc-user krbtgt	DCSync で1人だけ（krbtgt）
+-just-dc	DCSync だけ（SAM・LSA は見ない）
+-use-vss	VSS で NTDS を写して抜く（DCSync できないとき）
+-history	昔のパスワードのハッシュも
+-k	Kerberos 認証で（パスワード・ハッシュから。ホストは FQDN）

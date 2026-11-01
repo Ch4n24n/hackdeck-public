@@ -1,0 +1,30 @@
+% 準備, openvpn
+
+# openvpn: VPN につなぐ（ログは捨て、エラーだけ出す）
+sudo openvpn <ovpn> 2>&1 > /dev/null
+
+
+% 準備, hosts
+
+# /etc/hosts: 行を足す
+echo <hosts_ip> <hosts_names> | sudo tee -a /etc/hosts
+
+
+% 準備, ntpdate
+
+# ntpdate: 時刻を DC に合わせる（Kerberos の時刻のずれ）
+sudo timedatectl set-ntp 0; sudo ntpdate -t 5 -u <dc>; date; sudo ntpdate -q -t 5 <dc>
+
+
+% 準備, krb5
+
+# krb5.conf: 作って KRB5_CONFIG に入れる
+printf '%s\n' '[libdefaults]' '    default_realm = <realm>' '    dns_lookup_kdc = false' '    dns_lookup_realm = false' '    rdns = false' '[realms]' '    <realm> = {' '        kdc = <dc_fqdn>' '    }' '[domain_realm]' '    .<domain> = <realm>' '    <domain> = <realm>' > <krb5_conf> && export KRB5_CONFIG=<krb5_conf>
+
+
+% 準備, PowerShell
+
+# Set-ExecutionPolicy: 相手（PowerShell）でこのプロセスだけスクリプトを許可する
+Set-ExecutionPolicy Bypass -Scope Process
+
+
