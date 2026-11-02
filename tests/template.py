@@ -1,12 +1,11 @@
 #!/usr/bin/python3 -I
-"""雛形の既定と、雛形の git リポジトリから案件を作る流れを確かめる（2026-11-02。雛形は hackdeck から分けて、別のリポジトリ
-Hacking-Op-public にした。本人「template の考え方と hackdeck を混ぜたのが良くなかった。リポジトリを分けたほうがいい」。既定は、その
-リポジトリを HTTPS で clone する。本人「SSH 経由でクローンしているので、やるとしたら HTTP 経由になる」）。
+"""雛形の既定と、雛形の git リポジトリから案件を作る流れを確かめる（2026-11-02。雛形の既定は空＝ほかのリポジトリにつながない。
+本人「勝手にリポジトリ間で繋がりを作らないでください」）。
 
   python3 -I tests/template.py
 
-ネットにはつながない: 雛形の既定は値だけを確かめ、clone は試しの中で作った小さな雛形の git リポジトリで確かめる。偽の HOME
-（一時フォルダ）で、tmux には触らない（案件を作るだけで、始めない）。OK・NG を出し、NG があれば終わりの状態 1。
+ネットにはつながない: clone は、試しの中で作った小さな雛形の git リポジトリで確かめる。偽の HOME（一時フォルダ）で、tmux には
+触らない（案件を作るだけで、始めない）。OK・NG を出し、NG があれば終わりの状態 1。
 """
 import json
 import os
@@ -19,7 +18,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = []
 BOX = {"work": "02-作業", "state": "02-作業/.hack", "log": "91-ログ/実行ログ.log"}
-URL = "https://github.com/Ch4n24n/Hacking-Op-public.git"
 
 
 def check(name, ok, detail=""):
@@ -76,10 +74,12 @@ def main():
 
         # 既定（設定を何も書いていない＝公開版を入れたばかりの人）
         got = py(env, "from hackdeck import settings, session; print(json.dumps([settings.get('template'), session.template_kind()]))")
-        check("雛形の既定は、雛形のリポジトリの HTTPS の URL", got[0] == URL, got[0])
-        check("その既定は git として clone する", got[1] == "git", got[1])
+        check("雛形の既定は空（ほかのリポジトリにつながない）", got[0] == "" and got[1] == "", got)
         got = py(env, "from hackdeck import settings; print(json.dumps([settings.get(k) for k in ('work_dir', 'state_dir', 'log_file')]))")
-        check("場所の3つの既定は、雛形の形（02-作業・02-作業/.hack・91-ログ/実行ログ.log）", tuple(got) == tuple(BOX.values()), got)
+        check("場所の3つの既定（02-作業・02-作業/.hack・91-ログ/実行ログ.log）", tuple(got) == tuple(BOX.values()), got)
+        r = make(env, "first")
+        check("設定なしで作ると、作業フォルダとログの置き場所だけ（ネットにつながない）",
+              r.returncode == 0 and (cases / "first" / BOX["work"]).is_dir() and not (cases / "first" / ".git").exists(), r.stderr[-300:])
 
         # 雛形の git リポジトリから作る（ネットの代わりに、手元に作った小さな雛形）
         fixture(t / "tpl", env)
