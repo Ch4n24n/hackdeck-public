@@ -78,8 +78,8 @@ def creds_screen(e, can_back, can_fwd):
     足し、Ctrl+D で消す（2026-10-29、本人の指摘「資格情報は自動で保存するとゴミが集まるので、Ctrl+G で入った画面の
     どこかで設定できたらいい」で追加）。打った文字は、一覧を絞り（ほかのタブと同じ。絞るのは c_credsrows）、そのまま
     いちばん下の行で足す値にもなる。
-    Ctrl+E で書き換え（保存の1行だけの画面を列に足す。Alt+← で書き換えをやめる）、Ctrl+Y でユーザー・パスワードを
-    クリップボードへ（同日、本人の指摘で追加）。
+    行を選んで Enter で書き換え（保存の1行だけの画面を列に足す。Enter で保存、Alt+← で書き換えをやめる。2026-11-07 から。前は
+    Ctrl+E）、Ctrl+Y でユーザー・パスワードをクリップボードへ（2026-10-29、本人の指摘で追加）。
     e: 列の1つ（q 検索語・f カーソルの行・e 書き換えている行の番号・t その行の書き換え前の中身・tab 大きいタブ（creds。
     同じ画面で開いていた「よく使う」は、2026-10-30 に設定のタブの2項目へ移した））。
     戻り値は var_screen と同じ。書き換えを保存したときだけ ("saved", カーソルを合わせる行)"""
@@ -100,7 +100,7 @@ def creds_screen(e, can_back, can_fwd):
     where = "~" + str(f)[len(home):] if str(f).startswith(home + "/") else str(f)
     if editing is None:
         n = len(nxc_found()[0])
-        hint = ["Enter 追加", f"Ctrl+N netexec（{n}件）", "Ctrl+E 書き換え",
+        hint = ["Enter 追加・書き換え", f"Ctrl+N netexec（{n}件）",
                 "Ctrl+Y コピー（1回目ユーザー・2回目パスワード）", "Ctrl+D 消す（2回）"] \
             + ["Ctrl+O いまの場所に一覧を書き出す"] + nav_hint(can_back, can_fwd)
     else:
@@ -115,7 +115,7 @@ def creds_screen(e, can_back, can_fwd):
             ("見分け方", "32桁の16進（LM:NT の形も）は NT ハッシュ、それ以外はパスワード")]
     foot = foot_lines(srcs)
     keys = ["enter", "esc", *CLOSE_KEYS] + ([UP_KEY] if ui.NAV_UP else []) \
-        + (["ctrl-d", "ctrl-e", "ctrl-n", "tab", "btab"] if editing is None else []) \
+        + (["ctrl-d", "ctrl-n", "tab", "btab"] if editing is None else []) \
         + (["alt-left"] if can_back else []) + (["alt-right"] if can_fwd else [])
     pv = work_file("preview.txt", preview)
     args = ["fzf", "--layout=default", "--height=-1", "--ansi", "--disabled", "--no-sort", "--no-clear",
@@ -159,18 +159,18 @@ def creds_screen(e, can_back, can_fwd):
             keep_place(e, sel, c_credsrows, typed, {"HACKDECK_EDITING": ""},
                        lambda: delete_cred(int(sel[3:]), f))
         return ("stay",)
-    if key == "ctrl-e" and sel.startswith("op:"):
-        # 書き換え: その行を検索ボックスに出し、Enter（保存の行）でその行に上書きする（2026-10-29、本人の指摘）
-        n = int(sel[3:])
-        line = f.read_text(encoding="utf-8").splitlines()[n]
-        return ("push", {"s": "creds", "tab": tab, "q": line, "f": "add", "e": n, "t": line})
     if key == "ctrl-n":
         return ("push", {"s": "nxc", "tab": tab, "q": "", "f": None})   # netexec が見つけた分（nxc_screen）
     if key != "enter":
         return nav_key(key, tab)
     if sel in rows:
-        e["msg"] = "書き換えは Ctrl+E（Enter は一番下の行で足す）"
-        return ("stay",)
+        # 書き換え: その行を検索欄に出し、Enter（保存の行）でその行に上書きする（2026-10-29、本人の指摘）。2026-11-07 から、行を
+        # 選んで Enter で（本人「既存の項目を選んで Enter したら編集モードに入り、再度 Enter したら設定のほうが直感的」。前は
+        # Ctrl+E で、Enter は「書き換えは Ctrl+E」と出すだけだった）。一覧の検索欄はそのまま（Alt+← でやめると、打っていた文字の
+        # まま戻る。同日いったん空にしたが、本人「一回戻って、再度入り直したときに、以前の記入を残すか？って話ね。なら残しておいて」）
+        n = int(sel[3:])
+        line = f.read_text(encoding="utf-8").splitlines()[n]
+        return ("push", {"s": "creds", "tab": tab, "q": line, "f": "add", "e": n, "t": line})
     if sel == "add" and CRED_ADD_RE.match(typed):
         if editing is None:
             # 同じもの（資格情報はユーザーと説明が同じ）があれば、確かめてから上書き。中身まで同じなら何もしない

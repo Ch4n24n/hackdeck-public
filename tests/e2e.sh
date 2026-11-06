@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # hackdeck の通しの試し。案件を作って専用の tmux に入り、シェルの部分（環境変数・ログ・実行の時刻・戻るコマンド）、窓のキー
 # （zsh の入力行にも、ほかのプログラムにも貼る）、prefix+F、窓の配色（枠の色・題）、マウスのクリック（1回はカーソル、2回は Enter）、
-# 一覧の見え方（端の行のクリック・描き直し）、メモのタブ（vim）、案件のタブでの切り替え、終えた案件の並びの復元、案件の名前を
+# 一覧の見え方（端の行のクリック・描き直し）、検索欄（打つと絞る・行の Enter で書き換え・Ctrl+W は空白と記号で止まる）、
+# メモのタブ（vim）、案件のタブでの切り替え、終えた案件の並びの復元、案件の名前を
 # 変える（Ctrl+E・hackdeck の外で mv しても引き継ぐ）、設定の読み直し、
 # tmux の外の端末の Ctrl+G（待合の上に窓・止まっている案件に入っても固まらない）、案件の外も tmux で（設定の outside。
 # プログラムが動いていても Ctrl+G・案件から離れると戻る・端末を閉じると片づく）を試す。
@@ -252,7 +253,7 @@ O send-keys -t main C-g
 sleep 1.5
 setting theme '"ocean"'   # このあとの節は既定の配色で（上で選んだ配色は、一覧の行の並びで変わる。窓の枠の字も変わる）
 
-echo "== 検索欄は、どの画面も打つと一覧を絞る（足せる画面は、いちばん下の足す行が残る）"
+echo "== 検索欄は、どの画面も打つと一覧を絞る（足せる画面は、いちばん下の足す行が残る）。行の Enter で書き換え・Ctrl+W は空白と記号で止まる"
 # 行の数は一覧の右下の数（絞った行の数/全部の数）で見る（窓の左右には下のペインの字が見えるので、無い字は探さない）
 printf 'alice:Passw0rd!:test.local\nbob:Secret1:corp.local\n' >"$HOME/cases/demo/work/.hack/creds"
 O send-keys -t main C-g
@@ -268,6 +269,33 @@ O send-keys -t main -l 'corp'
 sleep 1.5
 # パスワードは引用符つきで出る（text.q）
 ok "資格情報: 打った文字を含む行（bob）と、足す行だけ" "screen | grep -q 'bob  *.Secret1.' && screen | grep -q '＋ 追加  *corp' && screen | grep -q ' 2/2 '"
+# 行を選んで Enter で書き換え（2026-11-07。前は Ctrl+E）。Ctrl+W は空白と記号（: . など）で止まる。保存すると一覧の検索欄は空、
+# Alt+← でやめると、書き換えに入る前に打っていた文字のまま
+O send-keys -t main Up
+sleep 1
+O send-keys -t main Enter
+sleep 2
+ok "資格情報: 行で Enter で書き換え（その行が検索欄に入る）" "screen | grep -q '＋ 保存  *bob:Secret1:corp.local'"
+O send-keys -t main C-w
+sleep 1.5
+ok "Ctrl+W は . で止まる（corp.local の local だけ消える）" "screen | grep -q '＋ 保存  *bob:Secret1:corp\.  '"
+O send-keys -t main C-w
+sleep 1.5
+ok "もう一度 Ctrl+W で、: の手前まで（説明が消える）" "screen | grep -q '＋ 保存  *bob:Secret1:  '"
+O send-keys -t main -l 'corp.htb'; O send-keys -t main Enter
+sleep 2
+ok "書き換えを Enter で保存して一覧へ（検索欄は空）" \
+  "grep -qx 'bob:Secret1:corp.htb' $HOME/cases/demo/work/.hack/creds && screen | grep -q '＋ 追加  *user:pass:説明 を打って Enter'"
+O send-keys -t main -l 'alice'
+sleep 1.5
+O send-keys -t main Up
+sleep 1
+O send-keys -t main Enter
+sleep 2
+O send-keys -t main M-Left
+sleep 2
+ok "書き換えを Alt+← でやめると、打っていた文字（alice）のままの一覧へ" \
+  "screen | grep -q '＋ 追加  *alice ' && screen | grep -q ' 2/2 ' && grep -qx 'alice:Passw0rd!:test.local' $HOME/cases/demo/work/.hack/creds"
 O send-keys -t main C-u
 sleep 1
 O send-keys -t main Tab   # 環境
@@ -277,6 +305,20 @@ sleep 1.5
 ok "環境: 値でも絞る（10.10.14 → LHOST と足す行だけ）" "screen | grep -q 'LHOST  *10\.10\.14\.7' && screen | grep -q ' 2/2 '"
 O send-keys -t main C-u
 sleep 1
+# 値に : がある変数を行の Enter で書き換え、そのまま保存しても値が変わらない（最後の : の後ろは説明なので、: を足して出す。
+# 前は http://web01:8080/ の 8080/ を説明と読み、値が http://web01 になった）
+O send-keys -t main -l 'URL=http://web01:8080/'; O send-keys -t main Enter
+sleep 2
+O send-keys -t main -l 'web01'
+sleep 1.5
+O send-keys -t main Up
+sleep 1
+O send-keys -t main Enter
+sleep 2
+ok "環境: 行で Enter で書き換え（値に : があれば最後に : を足して出す）" "screen | grep -q '＋ 保存  *URL:http://web01:8080/:'"
+O send-keys -t main Enter
+sleep 2
+ok "そのまま保存しても、値は変わらない" "grep -qx 'export URL=http://web01:8080/' $HOME/cases/demo/work/.hack/env"
 for _ in 1 2; do O send-keys -t main Tab; sleep 1.5; done   # 案件 → 設定（配色の一覧が開いている）
 O send-keys -t main Escape   # 設定の項目の一覧へ
 sleep 1.5
@@ -297,8 +339,11 @@ O send-keys -t main Up
 sleep 1
 O send-keys -t main Enter
 sleep 2
-ok "足す行でない行で Enter: 足さずに、書き換えは Ctrl+E と出す（資格情報・環境のタブと同じ）" \
-  "screen | grep -q '書き換えは Ctrl+E' && ! grep -q '\"KRB\"' $HOME/.config/hackdeck/settings.json"
+ok "設定の一覧を書く項目: 行で Enter で書き換え（足さない。資格情報・環境のタブと同じ）" \
+  "screen | grep -q '＋ 保存  *KRB5' && ! grep -q '\"KRB\"' $HOME/.config/hackdeck/settings.json"
+O send-keys -t main M-Left
+sleep 2
+ok "Alt+← でやめると、打っていた文字（KRB）のままの一覧へ" "screen | grep -q '＋ 追加  *KRB ' && screen | grep -q ' 3/3 '"
 O send-keys -t main Escape   # 項目の一覧へ
 sleep 1.5
 O send-keys -t main Tab   # コマンドのタブに戻してから閉じる

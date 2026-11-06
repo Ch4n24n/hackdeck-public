@@ -7,7 +7,7 @@ import shutil
 import subprocess
 
 from .text import ANSI_RE, display_width, fit, fit_desc, out, term_cols
-from .fzfcall import HEADING
+from .fzfcall import HEADING, RUBOUT_MARK
 from .case import case_root
 from .paths import RUN_DIR
 from .theme import B_ON, C_LINE, C_RESET, U_ON
@@ -244,6 +244,10 @@ def fzf_run(args, tab, clickonly=False, place=None, **kw):
     # 戻る・進む・上へ（Alt+←・→・↑）は、その画面で受けないときは何もしない（fzf の既定の「1語の左右」などにさせない。
     # 2026-10-29。前は画面ごとに書いていた）
     args = args + [a for k in ("alt-left", "alt-right", UP_KEY) if k not in expect for a in ("--bind", f"{k}:ignore")]
+    # Ctrl+W は、カーソルの手前の1語を消す（空白と記号で止まる。user:pass:説明 は項目ごと。2026-11-07、本人の指摘「区切り文字を
+    # : にすると Ctrl+W をしたときに、まとめてすべて削除してしまう」「一般的に止まるものは止めてほしい」。fzf の既定は空白でしか
+    # 止まらない）。fzf はカーソルの位置を外に出さないので、カーソルの所に目印を入れてから、消す字の数を数える（fzfcall.c_rubout）
+    args = args + ["--bind", f"ctrl-w:put({RUBOUT_MARK})+transform:hackdeck rubout {{q}}"]
     if tab in order and "btab" in expect:
         i = order.index(tab)
         for key, to, move in (("left", order[i - 1], "backward-char"), ("right", order[(i + 1) % len(order)], "forward-char")):

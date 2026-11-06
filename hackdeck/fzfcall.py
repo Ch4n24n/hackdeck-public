@@ -150,6 +150,34 @@ def c_casepos(query=""):
     print("pos(2)" if hit else "first")
 
 
+RUBOUT_MARK = "\ue000"   # Ctrl+W で、検索欄のカーソルの所に入れる目印（ui.fzf_run が put する。打つ字には出てこない私用の字）
+
+
+def word_char(c):
+    """Ctrl+W で1語とみなす字: 英数字（日本語などの字も）と _。空白と、ほかの記号（, . : ; / @ - ' " ( ) など。全角の（）、。も）で
+    止まる（VS Code の既定の語の区切りや、vim の語と同じ考え方）"""
+    return c.isalnum() or c == "_"
+
+
+def c_rubout(query):
+    """Ctrl+W（どの画面も。ui.fzf_run）。検索欄のカーソルの手前の1語を消す（すぐ前の空白・記号は先に飛ばし、その前の語の頭まで。
+    word_char）。user:pass:説明 なら項目ごと、URL・パス・IP は . や / ごとに消える（2026-11-07、本人の指摘「区切り文字を : に
+    すると Ctrl+W をしたときに、まとめてすべて削除してしまう。Ctrl+W で各項目ごと削除できるように」。fzf の既定の Ctrl+W
+    （unix-word-rubout）は空白でしか止まらない。区切り文字を空白に変える案は、値や説明の中の空白と見分けられなくなるので
+    やめた。はじめは空白と : だけで止めたが、同日、本人「一般的に止まるものは止めてほしい。,.:;/ とか」で記号のすべてに）。
+    fzf は検索欄のカーソルの位置を外に出さないので、ui.fzf_run がカーソルの所に目印を put してから呼ぶ。目印と、消す字の数だけ
+    backward-delete-char を出す（カーソルが途中にあれば、その手前の1語だけが消え、後ろは残る）"""
+    i = query.find(RUBOUT_MARK)
+    if i < 0:
+        return
+    j = i
+    while j and not word_char(query[j - 1]):
+        j -= 1
+    while j and word_char(query[j - 1]):
+        j -= 1
+    print("+".join(["backward-delete-char"] * (1 + i - j)))
+
+
 def replay():
     """前にこの画面を出していたときのカーソルの動き（向きの変わった所）をたどり直す pos(…)+ の並び。ui.fzf_run が覚えて
     HACKDECK_REPLAY で渡す。最初の画面を描く前に動かすので、一覧の見え方が前と同じになる（途中の動きは見えない）"""

@@ -47,6 +47,7 @@ USAGE = """使い方: hackdeck [サブコマンド] [引数]
   envrows [打った文字]               環境の画面の fzf（reload）から呼ばれる
   caserows [打った文字]              案件の画面の fzf（reload）から呼ばれる
   casepos [打った文字]               案件の画面の fzf（load）から呼ばれる
+  rubout <打った文字>                どの画面の fzf（Ctrl+W）からも呼ばれる（カーソルの手前の1語を消す。空白と記号で止まる）
   settingrows [打った文字]           設定の画面の fzf（reload）から呼ばれる
   footclick <対応表|->               足もと（流れの図）のクリック（fzf の click-footer）から呼ばれる
   env-capture <set|unset> <名前> <値> ...   シェルで export・unset した変数を書き戻す（shell/hack.zsh から呼ばれる）
@@ -135,7 +136,7 @@ def main(argv):
     cmd, args = argv[0], argv[1:]
     a0 = args[0] if args else ""
     # fzf から、打つたび・カーソルが動くたび・画面を出すたびに呼ばれるもの（いちばん軽く。fzfcall は text だけを読む）
-    if cmd in ("findpos", "findidx", "complete", "typed", "pick", "casepos"):
+    if cmd in ("findpos", "findidx", "complete", "typed", "pick", "casepos", "rubout"):
         from . import fzfcall
         if cmd == "findpos" and len(args) in (2, 3):
             fzfcall.c_findpos(*args)
@@ -149,6 +150,8 @@ def main(argv):
             fzfcall.c_pick(*args)
         elif cmd == "casepos":
             fzfcall.c_casepos(a0)
+        elif cmd == "rubout":
+            fzfcall.c_rubout(a0)
         else:
             print(USAGE, file=sys.stderr)
             return 2

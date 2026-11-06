@@ -5,7 +5,7 @@
   choice     候補から選ぶ（配色。選ぶとすぐ変わる）
   bool       開かない。一覧で Enter を押すたびに、する・しないが変わる
   dir・text  いまの値を検索欄に出し、直して Enter で保存（打つたびに、値の問題を settings.problem で一言出す）
-  list       一覧を書く（Enter 足す・Ctrl+E 書き換え・Ctrl+D 外す）。settings.json の配列
+  list       一覧を書く（＋の行で Enter 足す・ほかの行で Enter 書き換え・Ctrl+D 外す）。settings.json の配列
   common     よく使うユーザー・パスワード（list と同じ操作。中身は paths.COMMON_CREDS）"""
 import os
 import shlex
@@ -148,8 +148,8 @@ def settings_screen(e, can_back, can_fwd):
     「設定タブは項目にし、クリックした後に選べるように」。はじめは1回のクリックで開いていたが、2026-11-01、どの画面もクリックの
     決まりをそろえるときに本人が「2回で決める」を選んだ。ui.fzf_run）。配色は選ぶとすぐ色が変わり、その画面のまま（本人の指摘「配色を変えても
     前のタブに移らなくていい」）。値を書く項目は、いまの値を検索欄に出し、直して Enter で保存して一覧に戻る（Alt+← でやめる）。
-    一覧を書く項目は、Enter 足す・Ctrl+E 書き換え・Ctrl+D 外す、Esc で項目の一覧に戻る（よく使うものは、はじめは大きいタブの
-    「よく使う」で書いていたが、2026-10-30、本人の指摘「ユーザーとパスワードは別々の設定項目に」でここへ移した）。
+    一覧を書く項目は、＋の行で Enter 足す・ほかの行で Enter 書き換え・Ctrl+D 外す、Esc で項目の一覧に戻る（よく使うものは、
+    はじめは大きいタブの「よく使う」で書いていたが、2026-10-30、本人の指摘「ユーザーとパスワードは別々の設定項目に」でここへ移した）。
     e: 列の1つ（v 開いている項目・q 検索語・f カーソルの行・e 書いている行・t 書き換える前の行）。戻り値は var_screen と同じ"""
     key, editing = e.get("v") or "", e.get("e")
     s = BY_KEY.get(key)
@@ -181,7 +181,7 @@ def settings_screen(e, can_back, can_fwd):
         line2 = f"いま {shown_value(s)}" if editing is None else "直して Enter で保存"
         srcs = [("書き方", s.hint), *where_lines(s)]
     else:
-        hint = ["Enter 追加", "Ctrl+E 書き換え", "Ctrl+D 外す（2回）"] \
+        hint = ["Enter 追加・書き換え", "Ctrl+D 外す（2回）"] \
             + (["Ctrl+O いまの場所に一覧を書き出す"] if s.kind == "common" else []) + nav_hint(can_back, can_fwd)
         line2 = s.help
         srcs = [("書き方", f"{s.hint} を打って Enter で足す"), *where_lines(s)]
@@ -191,7 +191,7 @@ def settings_screen(e, can_back, can_fwd):
                f"{theme.C_HINT}{line2}{C_RESET}\n{theme.C_HINT}{'  '.join(hint)}{C_RESET}")
     foot = foot_lines(srcs)
     keys = ["enter", "esc", *CLOSE_KEYS] + ([UP_KEY] if ui.NAV_UP else []) + (["tab", "btab"] if editing is None else []) \
-        + (["ctrl-d", "ctrl-e"] if listing and editing is None else []) \
+        + (["ctrl-d"] if listing and editing is None else []) \
         + (["alt-left"] if can_back else []) + (["alt-right"] if can_fwd else [])
     # どの一覧も、絞るのは hackdeck 側（c_settingrows。配色の一覧は見出しを残すため）。打ったら、いちばん下の行へ（load:first。
     # ほかのタブと同じ）
@@ -281,14 +281,13 @@ def list_action(e, s, pending, typed, key_pressed, sel, editing):
         if twice(e, pending, "del", sel, f"もう一度 Ctrl+D で外す: {items[sel].split('  ')[0].strip()}"):
             keep_place(e, sel, c_settingrows, typed, view_env, lambda: list_remove(key, sel))
         return ("stay",)
-    if key_pressed == "ctrl-e" and sel in items:
-        q0, old = list_text(key, sel)
-        return ("push", {"s": "settings", "v": key, "q": q0, "f": "save", "e": sel, "t": old})
     if key_pressed not in ("enter", ""):
         return nav_key(key_pressed, "settings")
-    if sel in items:   # 資格情報・環境のタブと同じ（前は、どの行で Enter しても打った文字を足していた）
-        e["msg"] = "書き換えは Ctrl+E（Enter は一番下の行で足す）"
-        return ("stay",)
+    if sel in items:
+        # 書き換え（資格情報・環境のタブと同じく、行を選んで Enter で。2026-11-07 から。前は Ctrl+E で、Enter は「書き換えは
+        # Ctrl+E」と出すだけ。その前は、どの行で Enter しても打った文字を足していた）。一覧の検索欄はそのまま（資格情報のタブと同じ）
+        q0, old = list_text(key, sel)
+        return ("push", {"s": "settings", "v": key, "q": q0, "f": "save", "e": sel, "t": old})
     text = typed.strip()
     why = item_problem(key, text)
     if why or not text:
@@ -347,7 +346,7 @@ def common_save(e, key, text, editing):
         return ("saved", f"cm:{i}" if i is not None else None)
     shown = common_shown(parse_cred_line(line, True), key)
     if any(common_shown(c, key) == shown for c in common_items(key)):
-        e["msg"] = f"{shown} はもうある（説明を変えるなら Ctrl+E）"
+        e["msg"] = f"{shown} はもうある（説明を変えるなら、その行で Enter）"
         return ("stay",)
     common_write(lines + [line])
     e["q"] = ""   # 打つ行に留まる

@@ -39,7 +39,7 @@ def c_envrows(query=""):
         else:
             hint = f"Enter で {n} を足す" + ("" if n in keep else "（シェルの export でも書き戻すようにする）")
     else:
-        hint = "名前:値:説明 の形で打つ" if query else "名前:値:説明 を打って Enter（値・説明は省けて、名前だけでも足せる。例 DC01:10.10.11.5:DC）。書き換えは Ctrl+E"
+        hint = "名前:値:説明 の形で打つ" if query else "名前:値:説明 を打って Enter（値・説明は省けて、名前だけでも足せる。例 DC01:10.10.11.5:DC）"
     w = max([display_width(n) for n in [*vals, *keep]] + [12])
     print(f"add\t{fit('＋ 保存' if editing else '＋ 追加', w)}  {fit(query, 36)}  {hint}")
     if editing:
@@ -65,15 +65,16 @@ def c_envcopy(key):
 
 def env_screen(e, can_back, can_fwd):
     """環境の画面（大きいタブの「環境」。2026-10-30、tmux-op の op-env を合流）。案件の環境変数のファイル（env）の
-    変数を出し、打った 名前=値 を Enter で書く（もうある名前は、確かめてから上書き）。Ctrl+E で書き換え、Ctrl+D を2回で
+    変数を出し、打った 名前=値 を Enter で書く（もうある名前は、確かめてから上書き）。行を選んで Enter で書き換え、Ctrl+D を2回で
     消す（値の無い行なら、シェルの export で書き戻す名前から外す）、Ctrl+Y で値をコピー。操作は資格情報のタブと同じ
     （2026-10-30、本人の指摘「操作感は資格情報タブと同じに。共通にしたほうが覚えやすい」。はじめは行を選んで Enter でも
-    書き換えていた）。書いた値は、開いているどのペインも次に打つコマンドから効く（shell/hack.zsh が読み直す）。
+    書き換えていたが、そのときは資格情報のタブの Ctrl+E に寄せた。2026-11-07、本人の指摘で、どちらも行の Enter に）。
+    書いた値は、開いているどのペインも次に打つコマンドから効く（shell/hack.zsh が読み直す）。
     打った文字は、一覧を絞り（ほかのタブと同じ。絞るのは c_envrows）、そのままいちばん下の行で書く値にもなる。
     e: 列の1つ（q 検索語・f カーソルの行・e 書き換えている変数の名前）。戻り値は var_screen と同じ"""
     f, root, editing = env_file(), case_root(), e.get("e")
     if editing is None:
-        hint = ["Enter 追加", "Ctrl+E 書き換え", "Ctrl+Y $名前をコピー", "Ctrl+D 消す（2回）"] + nav_hint(can_back, can_fwd)
+        hint = ["Enter 追加・書き換え", "Ctrl+Y $名前をコピー", "Ctrl+D 消す（2回）"] + nav_hint(can_back, can_fwd)
     else:
         hint = ["Enter 保存"] + (["Alt+← 書き換えをやめる"] if can_back else []) + nav_hint(False, can_fwd)
     preview = (f"{theme.C_COMMENT}環境{C_RESET} {theme.C_TAG}[{root.name}]{C_RESET}\n"
@@ -84,7 +85,7 @@ def env_screen(e, can_back, can_fwd):
             ("export・unset", f"一覧にある名前なら、シェルで変えても {f.name} に保存される")]
     foot = foot_lines(srcs)
     keys = ["enter", "esc", *CLOSE_KEYS] + ([UP_KEY] if ui.NAV_UP else []) \
-        + (["ctrl-d", "ctrl-e", "tab", "btab"] if editing is None else []) \
+        + (["ctrl-d", "tab", "btab"] if editing is None else []) \
         + (["alt-left"] if can_back else []) + (["alt-right"] if can_fwd else [])
     pv = work_file("preview.txt", preview)
     args = ["fzf", "--layout=default", "--height=-1", "--ansi", "--disabled", "--no-sort", "--no-clear",
@@ -133,16 +134,16 @@ def env_screen(e, can_back, can_fwd):
             keep_place(e, sel, c_envrows, typed, {"HACKDECK_EDITING": ""},
                        lambda: env_keep_write([k for k in env_extra_names() if k != n]))
         return ("stay",)
-    if key == "ctrl-e" and sel.startswith("env:") and editing is None:
-        # 書き換え: 名前=いまの値 を検索ボックスに出し、Enter（保存の行）で書く（資格情報の画面の Ctrl+E と同じ）
-        d = env_name_lines().get(sel[4:], "")
-        return ("push", {"s": "env", "q": f"{sel[4:]}:{vals.get(sel[4:], '')}" + (f":{d}" if d else ""), "f": "add",
-                         "e": sel[4:]})
     if key != "enter":
         return nav_key(key, "env")
     if sel.startswith("env:"):
-        e["msg"] = "書き換えは Ctrl+E（Enter は一番下の行で足す）"
-        return ("stay",)
+        # 書き換え: 名前:いまの値:説明 を検索欄に出し、Enter（保存の行）で書く（資格情報の画面と同じく、行を選んで Enter で。
+        # 2026-11-07 から。前は Ctrl+E）。一覧の検索欄はそのまま（資格情報の画面と同じ）
+        n = sel[4:]
+        v, d = vals.get(n, ""), env_name_lines().get(n, "")
+        # 値に : があれば、説明が無くても最後に : を付ける（最後の : の後ろが説明なので。付けないと、そのまま Enter しただけで
+        # http://web01:8080 の 8080 を説明と読み、値が http://web01 になっていた）
+        return ("push", {"s": "env", "q": f"{n}:{v}" + (f":{d}" if d or ":" in v else ""), "f": "add", "e": n})
     pr = env_parse(typed) if sel == "add" else None
     if not pr or env_reserved(pr[0]):
         return ("stay",)
